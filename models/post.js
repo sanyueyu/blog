@@ -43,7 +43,7 @@ Post.prototype.save = function(callback) {
     });
 };
 
-Post.get = function(name, callback) {
+Post.getAll = function(name, callback) {
     mongodb.open(function(error, db) {
         if(error) {
             return callback(error);
@@ -67,6 +67,33 @@ Post.get = function(name, callback) {
                     doc.post = markdown.toHTML(doc.post);
                 });
                 callback(null, docs);
+            });
+        });
+    });
+};
+
+Post.getOne = function(name, day, title, callback) {
+    mongodb.open(function(error, db) {
+        if(error) {
+            return callback(error);
+        }
+        db.collection('posts', function(error, collection) {
+            if(error) {
+                mongodb.close();
+                return callback(error);
+            }
+            collection.findOne({
+                "name": name,
+                "time.day": day,
+                "title": title
+            }, function(error, doc) {
+                mongodb.close();
+                if(error) {
+                    return callback(error);
+                }
+                doc.post = markdown.toHTML(doc.post);
+                console.log(doc.post);
+                callback(null, doc);
             });
         });
     });

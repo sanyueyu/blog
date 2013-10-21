@@ -5,7 +5,7 @@ var crypto = require('crypto'),
     Post = require('../models/post.js');
 module.exports = function(app) {
     app.get('/', function(req, res) {
-        Post.get(null, function(error, posts) {
+        Post.getAll(null, function(error, posts) {
             if(error) {
                 posts = [];
             }
@@ -144,6 +144,44 @@ module.exports = function(app) {
         }
         req.flash('success', '文件上传成功');
         res.redirect('/upload');
+    });
+
+    app.get('/u/:name', function(req, res) {
+        User.get(req.params.name, function(error, user) {
+            if(!user) {
+                req.flash('error', '用户不存在');
+                return res.redirect('/');
+            }
+            Post.getAll(user.name, function(error, posts) {
+                if(error) {
+                    req.falsh('error', error);
+                    return req.redirect('/');
+                }
+                res.render('user', {
+                    title: user.name,
+                    posts: posts,
+                    user: req.session.user,
+                    success: req.flash('success').toString(),
+                    error: req.flash('error').toString()
+                });
+            });
+        });
+    });
+
+    app.get('/u/:name/:day/:title', function(req, res) {
+        Post.getOne(req.params.name, req.params.day, req.params.title, function(error, post) {
+            if(error) {
+                req.flash('error', error);
+                return res.redirect('/');
+            }
+            res.render('artical', {
+                title: req.params.title,
+                post: post,
+                user: req.session.user,
+                success: req.flash('success').toString(),
+                error: req.flash('error').toString()
+            });
+        });
     });
 
     function checkLogin(req, res, next) {
